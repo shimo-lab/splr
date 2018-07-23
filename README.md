@@ -11,4 +11,11 @@ after centering.<br/><br/>
  * Low rank matrices : right and left multiplication by another matrix
  <br/><br/>
  * Sparse plus low rank matrices : right and left multiplication by another matrix
- (singular value decomposition to be implemented soon ...)
+ (singular value decomposition to be implemented soon ...) <br/><br/>
+ 
+## `pip` installation 
+Run the following command :
+
+```
+pip install -e git+https://github.com/shimo-lab/splr#egg=splr
+```
