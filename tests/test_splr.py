@@ -46,3 +46,5 @@ def test_right_mul():
     y3 = np.random.random(m)
     with pytest.raises(AssertionError):
         x.right_mul(y3)
+
+# TODO: test SVD

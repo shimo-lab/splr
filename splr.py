@@ -2,7 +2,9 @@
 Definition of two classes to handle matrices written as the sum of a sparse and a low rank matrix
 """
 
+import scipy.linalg
 import scipy.sparse
+import numpy as np
 
 
 def is_low_rank(x):
@@ -44,8 +46,8 @@ class LowRank:
 
     Parameters
     ----------
-    a : ndarray, shape (m, p)
-    b : ndarray, shape (n, p)
+    a : ndarray
+    b : ndarray
     """
 
     def __init__(self, a, b):
@@ -70,7 +72,7 @@ class LowRank:
 
         """
         if is_low_rank(other):
-            return (self.a == other.a and self.b == other.b)
+            return self.a == other.a and self.b == other.b
         else:
             return False
 
@@ -129,8 +131,8 @@ class SparsePlusLowRank:
 
     Parameters
     ----------
-    sparse : scipy.sparse.spmatrix, shape (m, n)
-    low_rank : LowRank, shape (m, n)
+    sparse : scipy.sparse.spmatrix
+    low_rank : LowRank
     """
 
     def __init__(self, sparse, low_rank):
@@ -156,7 +158,7 @@ class SparsePlusLowRank:
 
         """
         if is_sparse_plus_low_rank(other):
-            return (self.sparse == other.sparse and self.low_rank == other.low_rank)
+            return self.sparse == other.sparse and self.low_rank == other.low_rank
         else:
             return False
 
@@ -200,8 +202,65 @@ class SparsePlusLowRank:
         res_low_rank = self.low_rank.left_mul(mat)
         return res_sparse + res_low_rank
 
-    def svd(self):
+    def svd(self, k, threshold, max_iter):
         """
-        To be implemented ...
+        Function computing the truncated singular value decomposition by alternating regression
+        TODO: implement regularization (ridge regression)
+
+        Parameters
+        ----------
+        k : int
+            Number of singular values / vectors to compute
+        threshold : float
+            Convergence threshold for the Frobenius norm ratio between two consecutive step's solution
+        max_iter : int
+            Maximum number of iterations
+
+        Returns
+        -------
+        u : ndarray, shape=(m, k)
+            Left singular vectors
+        d : ndarray, shape=(k,)
+            Singular values
+        v : ndarray, shape=(n, k)
+            Right singular vectors
+
         """
-        pass
+        # Initialization TODO: clarify the choice of these variables' initial value
+        u = np.random.multivariate_normal(np.zeros(k), np.eye(k), size=self.shape[0])
+        v = np.zeros((self.shape[1], k))
+        d_square = np.ones(k)
+
+        ratio = 1 # used to check convergence
+        curr_iter = 0
+
+        while ratio > threshold and curr_iter < max_iter:
+            curr_iter += 1
+
+            # saving the old state to check convergence
+            old_u = u
+            old_v = v
+            old_d_square = d_square
+
+            # v update step
+            b = (self.left_mul(u.T)).T
+            v, d_square, _ = scipy.linalg.svd(b, full_matrices=False)
+
+            # u update step
+            a = self.right_mul(v)
+            u, d_square, _ = scipy.linalg.svd(a, full_matrices=False)
+
+            # convergence check
+            old_frob_norm = (old_d_square ** 2).sum()
+            frob_norm = (d_square ** 2).sum()
+            frob_inner_prod = np.diag((old_d_square * old_u.T.dot(u)).dot(d_square * v.T.dot(old_v))).sum()
+            ratio = (frob_norm + old_frob_norm - 2 * frob_inner_prod) / old_frob_norm
+
+        if curr_iter == max_iter:
+            print("Warning: convergence not achieved")
+
+        # final cleanup
+        m = self.right_mul(v)
+        u, d, rt = scipy.linalg.svd(m, full_matrices=False)
+
+        return u, np.maximum(d, 0), v.dot(rt.T)
