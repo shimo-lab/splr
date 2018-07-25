@@ -10,8 +10,8 @@ after centering.<br/><br/>
  ## Supported operations
  * Low rank matrices : right and left multiplication by another matrix
  <br/><br/>
- * Sparse plus low rank matrices : right and left multiplication by another matrix
- (singular value decomposition to be implemented soon ...) <br/><br/>
+ * Sparse plus low rank matrices : right and left multiplication by another matrix,
+  and rank-restricted singular value decomposition (SVD)<br/><br/>
  
 ## `pip` installation 
 Run the following command :
