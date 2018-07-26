@@ -19,10 +19,10 @@ Run the following command :
 ```
 pip install -e git+https://github.com/shimo-lab/splr#egg=splr
 ```
-<br/><br/>
+<br/>
 
 ## References
-* Hastie et al., Matrix completion and low-rank SVD via fast alternating least square,
+* Hastie et al., matrix completion and low-rank SVD via fast alternating least square,
 Journal of Machine Learning Research, 2015 <br/><br/>
 * Hastie et al., softImpute : matrix completion via iterative soft-thresholded SVD,
 R package, 2015
