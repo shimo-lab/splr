@@ -1,6 +1,5 @@
 """
 Definition of a class to handle matrices written as the sum of a sparse and a low rank matrix
-# TODO: implement __matmul__ and __rmatmul__
 """
 
 import scipy.linalg
@@ -64,9 +63,55 @@ class SparsePlusLowRank:
         else:
             raise AttributeError(attr + " not found")
 
+    def __matmul__(self, other):
+        """
+        Matrix right multiplication operator
+
+        Parameters
+        ----------
+        other : ndarray
+            The matrix with which to perform the multiplication
+
+        Returns
+        -------
+        ndarray :
+            The multiplication's result
+
+        """
+        def check_shape(other):
+            if self.shape[1] != other.shape[0]:
+                raise ValueError("inconsistent shapes")
+
+        if isinstance(other, np.ndarray):
+            if other.ndim == 2:
+                check_shape(other)
+                return self.sparse @ other + (self.low_rank @ other).toarray()
+            else:
+                raise NotImplementedError("current implementation only support 2D arrays")
+
+        else:
+            raise TypeError("argument must be ndarray")
+
+    def __rmatmul__(self, other):
+        """Matrix left multiplication operator"""
+
+        def check_shape(other):
+            if other.shape[1] != self.shape[0]:
+                raise ValueError("inconsistent shapes")
+
+        if isinstance(other, np.ndarray):
+            if other.ndim == 2:
+                check_shape(other)
+                return other @ self.sparse + (other @ self.low_rank).toarray()
+            else:
+                raise NotImplementedError("current implementation only support 2D arrays")
+
+        else:
+            raise TypeError("argument must be ndarray")
+
     def transpose(self):
         """Transposition method"""
-        return SparsePlusLowRank(self.sparse.T, self.low_rank.T())
+        return SparsePlusLowRank(self.sparse.T, self.low_rank.T)
 
     def toarray(self):
         """
@@ -121,11 +166,11 @@ class SparsePlusLowRank:
             old_d_square = d_square
 
             # v update step
-            b = (self.left_mul(u.T)).T
+            b = self.T @ u
             v, d_square, _ = scipy.linalg.svd(b, full_matrices=False)
 
             # u update step
-            a = self.right_mul(v)
+            a = self @ v
             u, d_square, _ = scipy.linalg.svd(a, full_matrices=False)
 
             # convergence check
@@ -138,7 +183,7 @@ class SparsePlusLowRank:
             print("Warning: convergence not achieved")
 
         # final cleanup
-        m = self.right_mul(v)
+        m = self @ v
         u, d, rt = scipy.linalg.svd(m, full_matrices=False)
 
         return u, np.maximum(d, 0), v.dot(rt.T)

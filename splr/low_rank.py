@@ -2,6 +2,7 @@
 Definition of a class to handle low rank matrices in a factorized form
 """
 
+import scipy.sparse
 import numpy as np
 
 
@@ -50,7 +51,7 @@ class LowRank:
                 raise NotImplementedError("current implementation only supports 2D arrays")
 
         else:
-            raise ValueError("arguments must be numpy.ndarray")
+            raise TypeError("arguments must be ndarray")
 
     def __neg__(self):
         """Opposite operator"""
@@ -69,8 +70,8 @@ class LowRank:
 
         Parameters
         ----------
-        other : LowRank or numpy.ndarray
-            The low rank matrix with which to perform the multiplication
+        other : LowRank, spmatrix or ndarray
+            The matrix with which to perform the multiplication
 
         Returns
         -------
@@ -78,48 +79,51 @@ class LowRank:
             The multiplication's result
 
         """
-        if is_low_rank(other):
-            if self.shape[1] == other.shape[0]:
-                # TODO: think about efficiency
-                return LowRank(self.a.dot(self.b.T.dot(other.a)), other.b)
-            else:
+        def check_shape(other):
+            if self.shape[1] != other.shape[0]:
                 raise ValueError("inconsistent shapes")
+
+        if is_low_rank(other):
+            check_shape(other)
+            return LowRank(self.a.dot(self.b.T.dot(other.a)), other.b)
+
+        if scipy.sparse.issparse(other):
+            check_shape(other)
+            return LowRank(self.a, other.T @ self.b)
 
         elif isinstance(other, np.ndarray):
             if other.ndim == 2:
-                if self.shape[1] == other.shape[0]:
+                    check_shape(other)
                     return LowRank(self.a, other.T.dot(self.b))
-                else:
-                    raise ValueError("inconsistent shapes")
-
             else:
                 raise NotImplementedError("current implementation only support 2D arrays")
 
         else:
-            return NotImplemented
+            raise TypeError("argument must be LowRank, spmatrix or ndarray")
 
     def __rmatmul__(self, other):
         """Matrix left multiplication operator"""
+        def check_shape(other):
+            if other.shape[1] != self.shape[0]:
+                raise ValueError("inconsistent shapes")
 
         if is_low_rank(other):
-            if other.shape[1] == self.shape[0]:
-                # TODO: think about efficiency
-                return LowRank(other.a.dot(other.b.T.dot(self.a)), self.b)
-            else:
-                raise ValueError("inconsistent shapes")
+            check_shape(other)
+            return LowRank(other.a.dot(other.b.T.dot(self.a)), self.b)
+
+        if scipy.sparse.issparse(other):
+            check_shape(other)
+            return LowRank(other @ self.a, self.b)
 
         elif isinstance(other, np.ndarray):
             if other.ndim == 2:
-                if other.shape[1] == self.shape[0]:
-                    return LowRank(other.dot(self.a), self.b)
-                else:
-                    raise ValueError("inconsistent shapes")
-
+                check_shape(other)
+                return LowRank(other.dot(self.a), self.b)
             else:
                 raise NotImplementedError("current implementation only support 2D arrays")
 
         else:
-            return NotImplemented
+            raise TypeError("argument must be LowRank, spmatrix or ndarray")
 
     def transpose(self):
         """Transposition method"""
