@@ -125,15 +125,17 @@ class SparsePlusLowRank:
         """
         return self.sparse.toarray() + self.low_rank.toarray()
 
-    def svd(self, k, threshold=0.01, max_iter=1000):
+    def svd(self, k, alpha, threshold=0.01, max_iter=1000):
         """
         Method computing the truncated singular value decomposition by alternating regression
-        TODO: implement regularization (ridge regression)
+
 
         Parameters
         ----------
         k : int
             Number of singular values / vectors to compute
+        alpha : float
+            Regularization parameter
         threshold : float
             Convergence threshold for the Frobenius norm ratio between two consecutive step's solution
         max_iter : int
@@ -147,9 +149,9 @@ class SparsePlusLowRank:
             Singular values
         v : ndarray, shape=(n, k)
             Right singular vectors
-
+        
         """
-        # Initialization TODO: clarify the choice of these variables' initial value
+        # Initialization TODO: clarify the choice of these variables' initial value (warm start ?)
         u = np.random.multivariate_normal(np.zeros(k), np.eye(k), size=self.shape[0])
         v = np.zeros((self.shape[1], k))
         d_square = np.ones(k)
@@ -167,10 +169,12 @@ class SparsePlusLowRank:
 
             # v update step
             b = self.T @ u
+            if alpha > 0: b = b * (d_square / (d_square + alpha))
             v, d_square, _ = scipy.linalg.svd(b, full_matrices=False)
 
             # u update step
             a = self @ v
+            if alpha > 0 : a = a * (d_square / (d_square + alpha))
             u, d_square, _ = scipy.linalg.svd(a, full_matrices=False)
 
             # convergence check
@@ -179,11 +183,34 @@ class SparsePlusLowRank:
             frob_inner_prod = np.diag((old_d_square * old_u.T.dot(u)).dot(d_square * v.T.dot(old_v))).sum()
             ratio = (frob_norm + old_frob_norm - 2 * frob_inner_prod) / old_frob_norm
 
-        if curr_iter == max_iter:
-            print("Warning: convergence not achieved")
+        if ratio > threshold:
+            print("Warning: convergence not achieved (ratio: {:.3f})".format(ratio))
 
         # final cleanup
         m = self @ v
         u, d, rt = scipy.linalg.svd(m, full_matrices=False)
+        d[np.where(d < alpha)] = 0.0
 
-        return u, np.maximum(d, 0), v.dot(rt.T)
+        return u, d, v.dot(rt.T)
+    
+
+def center_matrix(x):
+    """
+    Function performing column centering on a data matrix
+    
+    Parameters
+    ----------
+    x : ndarray
+        The matrix on which to perform centering
+    
+    Returns
+    -------
+    SparsePlusLowRank:
+        The centered version of the input matrix
+        
+    """
+    x_mean = (1 / x.shape[0]) * np.ones((1, x.shape[0])) @ x
+    x_mean_factorized = LowRank(np.ones((x.shape[0], 1)), x_mean.T)
+    x_centered = SparsePlusLowRank(x, - x_mean_factorized)
+
+    return x_centered

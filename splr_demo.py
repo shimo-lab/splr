@@ -1,25 +1,46 @@
+import time
 import splr
 import scipy.sparse
 import scipy.linalg
 import numpy as np
 
-m = 1000
-n = 1000
 
-x = scipy.sparse.rand(m, n, density=0.0003) # creation of a random sparse matrix
-y = splr.LowRank(np.ones((m, 1)), np.ones((n, 1))) # creation of a rank 1 matrix
-z = splr.SparsePlusLowRank(x, y) # creation of the matrix of interest
+n = 3000 # matrix size
+m = n
+density = 1e-4 # density of non-zero coefficients
 
-k = 200 # number of singular values / vectors to compute
-threshold = 0.01
-max_iter = 10000
+# creation and centering of the matrix for which to perform SVD
+x = scipy.sparse.rand(n, m, density=density)
+x_centered = splr.center_matrix(x)
 
-u, d, v = z.svd(k, threshold, max_iter) # computation of the truncated SVD
+k = int(scipy.sqrt(n * m * density)) # number of singular values to compute
+alpha = 0.0 # regularization parameter
 
-z_array = z.sparse.toarray() + z.low_rank.toarray() # explicit computation of z
-z_approx = (u * d).dot(v.T) # approximation of z by its truncated SVD
+# splr SVD
+start_time = time.time()
+u, d, v = x_centered.svd(k, alpha)
+end_time = time.time()
 
-print("Rank of the original matrix: {} \n".format(np.linalg.matrix_rank(z_array)))
+splr_svd_duration = end_time - start_time
 
-print("Relative difference between the original matrix and its truncated SVD \n" +
-      "approximation (L2 norm): {}".format(np.linalg.norm(z_array - z_approx) / np.linalg.norm(z_array)))
+# scipy SVD for dense matrices
+x_centered_dense = x_centered.toarray()
+
+start_time = time.time()
+u_dense, d_dense, tv_dense = scipy.linalg.svd(x_centered_dense)
+end_time = time.time()
+
+scipy_svd_duration = end_time - start_time
+
+# approximation error for scipy SVD
+err_dense = np.linalg.norm(x_centered_dense - (u_dense[:, :k] * d_dense[:k]) @ tv_dense[:k, :])
+
+# approximation error for splr SVD
+err_splr = np.linalg.norm(x_centered_dense - (u * d) @ v.T)
+
+# excess approximation error for splr SVD
+ex_rel_approx_err = max(0, (err_splr - err_dense) / err_dense)
+
+print("splr SVD computed in {:.2f} seconds".format(splr_svd_duration))
+print("scipy SVD computed in {:.2f} seconds".format(scipy_svd_duration))
+print("excess relative approximation error : {0:.2%}".format(ex_rel_approx_err))

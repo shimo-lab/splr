@@ -10,6 +10,8 @@ after centering.<br/><br/>
  ## Supported operations
  * Low rank matrices : right and left multiplication by another matrix
  <br/><br/>
+ * Sparse plus low rank matrices : right and left multiplication by another matrix, 
+ rank-restricted singular value decomposition (SVD)<br/><br/>
  * Sparse plus low rank matrices : right and left multiplication by another matrix,
   and rank-restricted singular value decomposition (SVD)<br/><br/>
  
@@ -20,6 +22,9 @@ Run the following command :
 pip install -e git+https://github.com/shimo-lab/splr#egg=splr
 ```
 <br/>
+
+## Tests
+Run ```pytest``` to run the tests.<br/><br/>
 
 ## References
 * Hastie et al., matrix completion and low-rank SVD via fast alternating least square,

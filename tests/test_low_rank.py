@@ -1,8 +1,10 @@
 """
 LowRank unit tests
 # TODO: run tests for several random seeds
-# TODO: test initialization
 """
+
+import os, sys
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from splr import LowRank
 
