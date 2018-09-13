@@ -109,3 +109,6 @@ dataset
 
 # PyCharm files
 .idea
+
+# Pytest cache
+.pytest_cache/
