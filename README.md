@@ -21,6 +21,7 @@ Run the following command :
 ```
 pip install -e git+https://github.com/shimo-lab/splr#egg=splr
 ```
+<br/>
 
 ## Tests
 Run ```pytest``` to run the tests.<br/><br/>
