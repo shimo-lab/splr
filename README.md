@@ -8,7 +8,7 @@ The main motivation for this is to be able to efficiently handle sparse data mat
 after centering.
 <br/>
 <br/>
-**Please note that this library is still under active development.**
+Please note that this library is still under active development.
 <br/><br/>
  
  ## Supported operations
@@ -16,8 +16,6 @@ after centering.
  <br/><br/>
  * Sparse plus low rank matrices : right and left multiplication by another matrix, 
  rank-restricted singular value decomposition (SVD)<br/><br/>
- * Sparse plus low rank matrices : right and left multiplication by another matrix,
-  and rank-restricted singular value decomposition (SVD)<br/><br/>
  
 ## `pip` installation 
 Run the following command :
