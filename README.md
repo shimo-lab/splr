@@ -1,11 +1,14 @@
-# Sparse plus low rank module
+# Sparse plus low rank module (under development)
 <br/>
 Implementation of two classes to handle matrices that can be written as the sum of a sparse matrix and a low rank
 matrix.
 <br/>
 <br/>
 The main motivation for this is to be able to efficiently handle sparse data matrices
-after centering.<br/><br/>
+after centering.
+<br/>
+<br/>
+*Please note that this library is still under active development.<br/><br/>
  
  ## Supported operations
  * Low rank matrices : right and left multiplication by another matrix
