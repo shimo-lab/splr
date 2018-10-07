@@ -8,7 +8,7 @@ The main motivation for this is to be able to efficiently handle sparse data mat
 after centering.
 <br/>
 <br/>
-*Please note that this library is still under active development.*<br/><br/>
+**Please note that this library is still under active development.**<br/><br/>
  
  ## Supported operations
  * Low rank matrices : right and left multiplication by another matrix
