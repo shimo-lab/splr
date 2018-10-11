@@ -4,10 +4,6 @@ Implementation of two classes to handle matrices that can be written as the sum 
 matrix.
 <br/>
 <br/>
-The main motivation for this is to be able to efficiently handle sparse data matrices
-after centering.
-<br/>
-<br/>
 Please note that this library is still under active development. It has only been tested on a small number of cases, and further experiments must be conducted to ensure its proper functioning. 
 <br/><br/>
  
